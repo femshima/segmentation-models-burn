@@ -29,13 +29,13 @@ impl EfficientNetConfigPreset {
         let weight = match self.weight {
             Some(EfficientNetWeightKind::Normal) => {
                 let url = self.structure.to_url().unwrap();
-                Some(crate::download("efficientnet", &url).map_err(|err| {
+                Some(crate::download("efficientnet", url).map_err(|err| {
                     RecorderError::Unknown(format!("Could not download weights.\nError: {err}"))
                 })?)
             }
             Some(EfficientNetWeightKind::AdvProp) => {
                 let url = self.structure.to_url_advprop().unwrap();
-                Some(crate::download("efficientnet", &url).map_err(|err| {
+                Some(crate::download("efficientnet", url).map_err(|err| {
                     RecorderError::Unknown(format!("Could not download weights.\nError: {err}"))
                 })?)
             }
@@ -132,7 +132,7 @@ impl EfficientNetKind {
             &global_config,
             &default_block_args
                 .iter()
-                .map(|args| InvertedResidualConfig::decode(&args))
+                .map(|args| InvertedResidualConfig::decode(args))
                 .collect::<Vec<_>>(),
             feature_idxs,
         )

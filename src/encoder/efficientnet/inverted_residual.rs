@@ -152,7 +152,7 @@ impl InvertedResidualConfig {
         } else {
             "".to_string()
         };
-        let skip = if self.id_skip == false { "_noskip" } else { "" };
+        let skip = if self.id_skip { "" } else { "_noskip" };
 
         format!(
             "r{}_k{}_s{}{}_e{}_i{}_o{}{}{}",
@@ -185,14 +185,16 @@ impl InvertedResidualConfig {
                 v = "";
             }
             if k == "s" {
-                if v.len() == 2 {
-                    assert_eq!(v[0..1], v[1..2]);
-                    v = &v[0..1];
-                } else if v.len() > 2 {
-                    panic!(
-                        "stride must not exceed size 2 but the size is {:?}",
-                        v.len()
-                    );
+                match v.len() {
+                    1 => (),
+                    2 => {
+                        assert_eq!(v[0..1], v[1..2]);
+                        v = &v[0..1];
+                    }
+                    len => panic!(
+                        "stride string's length must be 1 or 2, instead got {:?}",
+                        len
+                    ),
                 }
             }
             map.insert(k, v);
@@ -207,7 +209,7 @@ impl InvertedResidualConfig {
             output_filters: map.get("o").unwrap().parse().unwrap(),
 
             se_ratio: map.get("se").map(|v| v.parse().unwrap()),
-            id_skip: map.get("noskip").is_some(),
+            id_skip: map.contains_key("noskip"),
 
             drop_connect_rate: None,
         }

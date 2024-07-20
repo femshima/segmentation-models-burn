@@ -30,7 +30,7 @@ impl ResNetConfigPreset {
         let model = structure.to_config().init(device);
 
         if let Some(url) = structure.url {
-            let weight = crate::download("resnet", &url).map_err(|err| {
+            let weight = crate::download("resnet", url).map_err(|err| {
                 RecorderError::Unknown(format!("Could not download weights.\nError: {err}"))
             })?;
             let record = self.load_weights_record(weight, device)?;
