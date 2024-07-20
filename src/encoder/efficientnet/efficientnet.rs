@@ -166,7 +166,8 @@ impl EfficientNetConfig {
             .iter_mut()
             .enumerate()
             .for_each(|(block_idx, block)| {
-                block.drop_connect_rate = Some(global.drop_connect_rate * block_idx as f64 / block_len)
+                block.drop_connect_rate =
+                    Some(global.drop_connect_rate * block_idx as f64 / block_len)
             });
 
         let feature_idxs = feature_idxs.unwrap_or_else(|| {
