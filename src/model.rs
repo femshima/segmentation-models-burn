@@ -13,10 +13,10 @@ use crate::{
 
 #[derive(Debug, Clone)]
 pub struct Model<B: Backend, E, D> {
-    encoder: E,
-    decoder: D,
-    head: SegmentationHead<B>,
-    feature_idxs: Vec<usize>,
+    pub encoder: E,
+    pub decoder: D,
+    pub head: SegmentationHead<B>,
+    pub feature_idxs: Vec<usize>,
 }
 
 impl<B: Backend, E: Encoder<Backend = B>, D: Decoder<Backend = B>> Model<B, E, D> {
