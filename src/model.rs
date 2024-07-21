@@ -151,11 +151,16 @@ impl<B: Backend, E: Module<B>, D: Module<B>> core::fmt::Display for Model<B, E, 
 pub struct ModelConfig<EC, DC> {
     encoder: EC,
     decoder: DC,
+    head: SegmentationHeadConfig,
     feature_idxs: Vec<usize>,
 }
 
 impl<EC, DC> ModelConfig<EC, DC> {
-    pub fn new<B: Backend>(encoder: EC, decoder: DC) -> ModelConfig<EC, DC>
+    pub fn new<B: Backend>(
+        encoder: EC,
+        decoder: DC,
+        head: SegmentationHeadConfig,
+    ) -> ModelConfig<EC, DC>
     where
         EC: EncoderConfig<B>,
         DC: DecoderConfig<B>,
@@ -165,6 +170,7 @@ impl<EC, DC> ModelConfig<EC, DC> {
         ModelConfig {
             encoder,
             decoder,
+            head,
             feature_idxs,
         }
     }
@@ -183,7 +189,7 @@ impl<B: Backend, EC: EncoderConfig<B>, DC: DecoderConfig<B>> ModelInit<B, EC, DC
             .decoder
             .with_encoder_channels(self.encoder.out_channels())
             .init(device);
-        let head = SegmentationHeadConfig::new(self.decoder.out_channels(), classes).init(device);
+        let head = SegmentationHeadConfig::new().init(self.decoder.out_channels(), classes, device);
         Model {
             encoder,
             decoder,

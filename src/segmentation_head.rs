@@ -26,8 +26,6 @@ impl<B: Backend> SegmentationHead<B> {
 
 #[derive(Config, Debug)]
 pub struct SegmentationHeadConfig {
-    in_channels: usize,
-    out_channels: usize,
     #[config(default = "[3, 3]")]
     kernel_size: [usize; 2],
     #[config(default = false)]
@@ -35,9 +33,14 @@ pub struct SegmentationHeadConfig {
 }
 
 impl SegmentationHeadConfig {
-    pub fn init<B: Backend>(&self, device: &B::Device) -> SegmentationHead<B> {
+    pub fn init<B: Backend>(
+        &self,
+        in_channels: usize,
+        out_channels: usize,
+        device: &B::Device,
+    ) -> SegmentationHead<B> {
         SegmentationHead {
-            conv: Conv2dConfig::new([self.in_channels, self.out_channels], self.kernel_size)
+            conv: Conv2dConfig::new([in_channels, out_channels], self.kernel_size)
                 .with_padding(PaddingConfig2d::Same)
                 .init(device),
             omit_activation_on_train: self.omit_activation_on_train,
