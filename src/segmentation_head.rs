@@ -5,22 +5,21 @@ use burn::{
         conv::{Conv2d, Conv2dConfig},
         PaddingConfig2d,
     },
-    tensor::{activation::sigmoid, backend::Backend, Tensor},
+    tensor::{backend::Backend, Tensor},
 };
+
+use crate::activation::Activation;
 
 #[derive(Module, Debug)]
 pub struct SegmentationHead<B: Backend> {
     conv: Conv2d<B>,
-    omit_activation_on_train: bool,
+    activation: Activation,
 }
 
 impl<B: Backend> SegmentationHead<B> {
     pub fn forward(&self, x: Tensor<B, 4>) -> Tensor<B, 4> {
-        let mut x = self.conv.forward(x);
-        if !self.omit_activation_on_train && B::ad_enabled() {
-            x = sigmoid(x);
-        }
-        x
+        let x = self.conv.forward(x);
+        self.activation.forward(x)
     }
 }
 
@@ -28,8 +27,8 @@ impl<B: Backend> SegmentationHead<B> {
 pub struct SegmentationHeadConfig {
     #[config(default = "[3, 3]")]
     kernel_size: [usize; 2],
-    #[config(default = false)]
-    omit_activation_on_train: bool,
+    #[config(default = "Activation::Sigmoid")]
+    activation: Activation,
 }
 
 impl SegmentationHeadConfig {
@@ -43,7 +42,7 @@ impl SegmentationHeadConfig {
             conv: Conv2dConfig::new([in_channels, out_channels], self.kernel_size)
                 .with_padding(PaddingConfig2d::Same)
                 .init(device),
-            omit_activation_on_train: self.omit_activation_on_train,
+            activation: self.activation,
         }
     }
 }
