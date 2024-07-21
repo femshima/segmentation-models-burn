@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use burn::{
     config::Config,
@@ -26,13 +26,15 @@ impl EfficientNetConfigPreset {
         &self,
         device: &Device<B>,
     ) -> Result<EfficientNet<B>, RecorderError> {
-        let weight = match self.weight {
+        let weight: Option<PathBuf> = match self.weight {
+            #[cfg(feature = "pretrained")]
             Some(EfficientNetWeightKind::Normal) => {
                 let url = self.structure.to_url().unwrap();
                 Some(crate::download("efficientnet", url).map_err(|err| {
                     RecorderError::Unknown(format!("Could not download weights.\nError: {err}"))
                 })?)
             }
+            #[cfg(feature = "pretrained")]
             Some(EfficientNetWeightKind::AdvProp) => {
                 let url = self.structure.to_url_advprop().unwrap();
                 Some(crate::download("efficientnet", url).map_err(|err| {
@@ -40,6 +42,8 @@ impl EfficientNetConfigPreset {
                 })?)
             }
             None => None,
+            #[allow(unreachable_patterns)]
+            _ => panic!("Please enable `pretrained` feature to use pretrained weights."),
         };
         let model = self.structure.to_config().init(device);
 
@@ -137,6 +141,8 @@ impl EfficientNetKind {
             feature_idxs,
         )
     }
+
+    #[cfg(feature = "pretrained")]
     fn to_url(&self) -> Option<&str> {
         use EfficientNetKind::*;
         match self {
@@ -152,6 +158,7 @@ impl EfficientNetKind {
           _ => None,
       }
     }
+    #[cfg(feature = "pretrained")]
     fn to_url_advprop(&self) -> Option<&str> {
         use EfficientNetKind::*;
         match self {

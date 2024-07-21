@@ -1,4 +1,6 @@
+#[cfg(feature = "pretrained")]
 mod download;
+#[cfg(feature = "pretrained")]
 pub(crate) use download::download;
 
 pub mod decoder;

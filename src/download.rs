@@ -4,8 +4,6 @@ use std::{
     path::PathBuf,
 };
 
-use burn::data::network::downloader;
-
 /// Download the pre-trained weights to the local cache directory.
 pub(crate) fn download(module: &'static str, url: &str) -> Result<PathBuf, std::io::Error> {
     // Model cache directory
@@ -22,7 +20,7 @@ pub(crate) fn download(module: &'static str, url: &str) -> Result<PathBuf, std::
     let file_name = model_dir.join(file_base_name);
     if !file_name.exists() {
         // Download file content
-        let bytes = downloader::download_file_as_bytes(url, file_base_name);
+        let bytes = burn::data::network::downloader::download_file_as_bytes(url, file_base_name);
 
         // Write content to file
         let mut output_file = File::create(&file_name)?;

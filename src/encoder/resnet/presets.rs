@@ -1,16 +1,12 @@
-use std::path::Path;
-
 use burn::{
     config::Config,
-    module::Module,
-    record::{FullPrecisionSettings, Recorder, RecorderError},
+    record::RecorderError,
     tensor::{backend::Backend, Device},
 };
-use burn_import::pytorch::{LoadArgs, PyTorchFileRecorder};
 
 use crate::encoder::EncoderConfig;
 
-use super::{weights::*, ResNet, ResNetRecord};
+use super::{weights::*, ResNet};
 
 #[derive(Debug, Config)]
 pub enum ResNetConfigPreset {
@@ -29,14 +25,20 @@ impl ResNetConfigPreset {
         let structure = self.structure();
         let model = structure.to_config().init(device);
 
-        if let Some(url) = structure.url {
-            let weight = crate::download("resnet", url).map_err(|err| {
-                RecorderError::Unknown(format!("Could not download weights.\nError: {err}"))
-            })?;
-            let record = self.load_weights_record(weight, device)?;
-            Ok(model.load_record(record))
-        } else {
-            Ok(model)
+        match structure.url {
+            #[cfg(feature = "pretrained")]
+            Some(url) => {
+                use burn::module::Module;
+
+                let weight = crate::download("resnet", url).map_err(|err| {
+                    RecorderError::Unknown(format!("Could not download weights.\nError: {err}"))
+                })?;
+                let record = self.load_weights_record(weight, device)?;
+                Ok(model.load_record(record))
+            }
+            None => Ok(model),
+            #[allow(unreachable_patterns)]
+            _ => panic!("Please enable `pretrained` feature to use pretrained weights."),
         }
     }
 
@@ -49,12 +51,17 @@ impl ResNetConfigPreset {
             Self::ResNet152(resnet152) => resnet152.weights(),
         }
     }
+
     /// Load specified pre-trained PyTorch weights as a record.
-    fn load_weights_record<B: Backend, P: AsRef<Path>>(
+    #[cfg(feature = "pretrained")]
+    fn load_weights_record<B: Backend, P: AsRef<std::path::Path>>(
         &self,
         torch_weights: P,
         device: &Device<B>,
-    ) -> Result<ResNetRecord<B>, RecorderError> {
+    ) -> Result<super::ResNetRecord<B>, RecorderError> {
+        use burn::record::{FullPrecisionSettings, Recorder};
+        use burn_import::pytorch::{LoadArgs, PyTorchFileRecorder};
+
         // Load weights from torch state_dict
         let load_args = LoadArgs::new(torch_weights.as_ref().into())
             // Map *.downsample.0.* -> *.downsample.conv.*
