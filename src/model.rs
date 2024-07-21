@@ -1,5 +1,7 @@
 use burn::{
-    module::{AutodiffModule, Devices, ModuleMapper, ModuleVisitor},
+    module::{
+        AutodiffModule, Devices, ModuleDisplay, ModuleDisplayDefault, ModuleMapper, ModuleVisitor,
+    },
     prelude::*,
     record::Record,
     tensor::backend::AutodiffBackend,
@@ -142,10 +144,19 @@ impl<B: Backend, E: Module<B>, D: Module<B>> core::fmt::Display for Model<B, E, 
         f.write_fmt(format_args!(
             "{0}[num_params={1}]",
             "Model",
-            self.num_params()
+            Module::num_params(self)
         ))
     }
 }
+
+impl<B: Backend, E: Module<B>, D: Module<B>> ModuleDisplayDefault for Model<B, E, D> {
+    fn content(&self, content: burn::module::Content) -> Option<burn::module::Content> {
+        let string = format!("{}", self);
+        content.add_formatted(&string).optional()
+    }
+}
+
+impl<B: Backend, E: Module<B>, D: Module<B>> ModuleDisplay for Model<B, E, D> {}
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct ModelConfig<EC, DC> {
