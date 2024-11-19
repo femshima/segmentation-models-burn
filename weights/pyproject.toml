@@ -1,0 +1,23 @@
+[project]
+name = "weights"
+version = "0.1.0"
+description = "Convert the older pytorch models to the newer one, supported by candle."
+dependencies = [
+    "torch>=2.5.1",
+]
+readme = "README.md"
+requires-python = ">= 3.12"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = []
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/weights"]
